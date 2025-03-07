@@ -1,0 +1,464 @@
+#+TITLE: French Philosophical Text Examples
+#+AUTHOR: J. Walsh
+#+EMAIL: jwalsh@nexushive
+#+DATE: [2025-03-07 Fri]
+#+PROPERTY: header-args:text :tangle data/examples.txt :mkdirp yes
+#+PROPERTY: header-args :eval never-export
+
+* Introduction
+
+This document contains examples of complex French sentences from various philosophers, writers, and intellectuals. These examples serve as test cases for our syntax tree parser, demonstrating different syntactic structures and stylistic features.
+
+* Marcel Proust
+
+#+BEGIN_SRC text :tangle data/proust.txt :mkdirp yes
+Longtemps, je me suis couché de bonne heure. Parfois, à peine ma bougie éteinte, mes yeux se fermaient si vite que je n'avais pas le temps de me dire: «Je m'endors.» Et, une demi-heure après, la pensée qu'il était temps de chercher le sommeil m'éveillait; je voulais poser le volume que je croyais avoir encore dans les mains et souffler ma lumière; je n'avais pas cessé en dormant de faire des réflexions sur ce que je venais de lire, mais ces réflexions avaient pris un tour un peu particulier; il me semblait que j'étais moi-même ce dont parlait l'ouvrage: une église, un quatuor, la rivalité de François Ier et de Charles Quint.
+#+END_SRC
+
+#+BEGIN_SRC text :tangle data/proust_complex.txt
+Mais j'avais beau savoir que je n'étais pas dans les demeures dont l'ignorance du réveil m'avait en un instant sinon présenté l'image distincte, du moins fait croire la présence possible, le branle était donné à ma mémoire; généralement je ne cherchais pas à me rendormir tout de suite; je passais la plus grande partie de la nuit à me rappeler notre vie d'autrefois à Combray chez ma grand'tante, à Balbec, à Paris, à Doncières, à Venise, ailleurs encore, à me rappeler les lieux, les personnes que j'y avais connues, ce que j'avais vu d'elles, ce qu'on m'en avait raconté.
+#+END_SRC
+
+* Michel Foucault
+
+#+BEGIN_SRC text :tangle data/foucault.txt
+Le pouvoir disciplinaire, en effet, est un pouvoir qui, au lieu de soutirer et de prélever, a pour fonction majeure de «dresser»; ou sans doute, de dresser pour mieux prélever et soutirer davantage.
+#+END_SRC
+
+#+BEGIN_SRC text :tangle data/foucault_complex.txt
+La prison ne peut manquer de fabriquer des délinquants. Elle en fabrique par le type d'existence qu'elle fait mener aux détenus: qu'on les isole dans les cellules, ou qu'on leur impose un travail inutile, pour lequel ils ne trouveront pas d'emploi, c'est de toute façon ne pas «penser à l'homme en société; c'est créer une existence contre nature inutile et dangereuse»; on veut que la prison éduque les détenus, mais un système d'éducation qui s'adresse à l'homme peut-il raisonnablement avoir pour objet d'agir contre le vœu de la nature?
+#+END_SRC
+
+* Jacques Derrida
+
+#+BEGIN_SRC text :tangle data/derrida.txt
+Il n'y a pas de hors-texte. Il n'y a pas eu jamais rien que du texte, il n'y a jamais eu que des suppléments, des significations substitutives qui n'ont pu surgir que dans une chaîne de renvois différentiels.
+#+END_SRC
+
+#+BEGIN_SRC text :tangle data/derrida_complex.txt
+La déconstruction ne peut se limiter ou passer immédiatement à une neutralisation: elle doit, par un double geste, une double science, une double écriture, pratiquer un renversement de l'opposition classique et un déplacement général du système. C'est à cette seule condition que la déconstruction se donnera les moyens d'intervenir dans le champ des oppositions qu'elle critique et qui est aussi un champ de forces non-discursives.
+#+END_SRC
+
+* Jean-Paul Sartre
+
+#+BEGIN_SRC text :tangle data/sartre.txt
+L'existence précède l'essence. Cela signifie que l'homme existe d'abord, se rencontre, surgit dans le monde, et qu'il se définit après.
+#+END_SRC
+
+#+BEGIN_SRC text :tangle data/sartre_complex.txt
+Ainsi, la première démarche de l'existentialisme est de mettre tout homme en possession de ce qu'il est et de faire reposer sur lui la responsabilité totale de son existence. Et, quand nous disons que l'homme est responsable de lui-même, nous ne voulons pas dire que l'homme est responsable de sa stricte individualité, mais qu'il est responsable de tous les hommes.
+#+END_SRC
+
+* Jean Baudrillard
+
+#+BEGIN_SRC text :tangle data/baudrillard.txt
+Le simulacre n'est jamais ce qui cache la vérité – c'est la vérité qui cache qu'il n'y en a pas. Le simulacre est vrai.
+#+END_SRC
+
+#+BEGIN_SRC text :tangle data/baudrillard_complex.txt
+Nous vivons dans un monde où il y a de plus en plus d'informations, et de moins en moins de sens. Considérer la prolifération d'informations comme porteuse de sens et de contenu, c'est se méprendre entièrement, car la relation est inverse. L'information dévore ses propres contenus; elle dévore la communication et le social.
+#+END_SRC
+
+* Albert Camus
+
+#+BEGIN_SRC text :tangle data/camus.txt
+Au milieu de l'hiver, j'ai découvert en moi un invincible été.
+#+END_SRC
+
+#+BEGIN_SRC text :tangle data/camus_complex.txt
+Il n'y a qu'un problème philosophique vraiment sérieux: c'est le suicide. Juger que la vie vaut ou ne vaut pas la peine d'être vécue, c'est répondre à la question fondamentale de la philosophie. Le reste, si le monde a trois dimensions, si l'esprit a neuf ou douze catégories, vient ensuite. Ce sont des jeux; il faut d'abord répondre.
+#+END_SRC
+
+* Bernard-Henri Lévy
+
+#+BEGIN_SRC text :tangle data/bhl.txt
+La barbarie à visage humain est le fait de notre temps; la vraie, la grande question philosophique n'est pas de penser le Même, ni l'Autre, mais de penser le Même devenu Autre.
+#+END_SRC
+
+#+BEGIN_SRC text :tangle data/bhl_complex.txt
+Le totalitarisme n'est pas seulement, comme on le dit, un régime sans pluralisme, sans système alternatif ou sans contre-pouvoirs. Il est plus et autre chose: le rêve d'une société intégralement transparente à elle-même, corps collectif débarrassé de ses scories, purifiée de ses déchets et parfaitement réconciliée avec sa propre essence.
+#+END_SRC
+
+* Simone de Beauvoir
+
+#+BEGIN_SRC text :tangle data/beauvoir.txt
+On ne naît pas femme: on le devient.
+#+END_SRC
+
+#+BEGIN_SRC text :tangle data/beauvoir_complex.txt
+C'est par le travail que la femme a en grande partie franchi la distance qui la séparait du mâle; c'est le travail qui peut seul lui garantir une liberté concrète. Dès qu'elle cesse d'être une parasite, le système fondé sur sa dépendance s'écroule; entre elle et l'univers il n'est plus besoin d'un médiateur masculin.
+#+END_SRC
+
+* Roland Barthes
+
+#+BEGIN_SRC text :tangle data/barthes.txt
+Le mythe ne nie pas les choses, sa fonction est au contraire d'en parler; simplement, il les purifie, les innocente, les fonde en nature et en éternité.
+#+END_SRC
+
+#+BEGIN_SRC text :tangle data/barthes_complex.txt
+L'écriture est précisément ce compromis entre une liberté et un souvenir, elle est cette liberté souvenante qui n'est liberté que dans le geste du choix, mais déjà plus dans sa durée. Je puis sans doute aujourd'hui me choisir telle ou telle écriture, et par là même affirmer ma liberté, prétendre à une fraîcheur ou à une tradition; mais je ne puis déjà plus la développer dans une durée sans devenir peu à peu prisonnier des mots d'autrui et même de mes propres mots.
+#+END_SRC
+
+* Voltaire
+
+#+BEGIN_SRC text :tangle data/voltaire.txt
+Il faut cultiver notre jardin.
+#+END_SRC
+
+#+BEGIN_SRC text :tangle data/voltaire_complex.txt
+Si c'est ici le meilleur des mondes possibles, que sont donc les autres? Tout est bien, sans doute, puisque la Providence le veut ainsi; mais il n'en est pas moins vrai que j'ai les yeux rouges, et que mon corps et mon âme souffrent depuis ma naissance, et que nous avons tous beaucoup souffert.
+#+END_SRC
+
+* Montaigne
+
+#+BEGIN_SRC text :tangle data/montaigne.txt
+Que sais-je?
+#+END_SRC
+
+#+BEGIN_SRC text :tangle data/montaigne_complex.txt
+Il n'est rien de si beau et légitime que de faire bien l'homme et dûment, ni science si ardue que de bien et naturellement savoir vivre cette vie; et de nos maladies la plus sauvage, c'est mépriser notre être.
+#+END_SRC
+
+* Victor Hugo
+
+#+BEGIN_SRC text :tangle data/hugo.txt
+La mélancolie, c'est le bonheur d'être triste.
+#+END_SRC
+
+#+BEGIN_SRC text :tangle data/hugo_complex.txt
+Quand la conscience de l'homme est tranquille, l'œil est clair. Cette certitude de la conscience qui se traduit en clarté du regard est-elle toujours fondée? Non. Une âme peut être profondément trouble et garder un regard limpide. Cela est même presque la règle chez les natures rusées. La vérité, c'est que ces natures rusées se trompent elles-mêmes. Elles ne se sentent pas en faute parce qu'elles ne se sentent pas; ou plutôt elles prennent pour une absolution ce qui n'est qu'une paralysie.
+#+END_SRC
+
+* Pierre Bourdieu
+
+#+BEGIN_SRC text :tangle data/bourdieu.txt
+Le langage d'autorité ne gouverne jamais qu'avec la collaboration de ceux qu'il gouverne, c'est-à-dire grâce à l'assistance des mécanismes sociaux capables de produire cette complicité, fondée sur la méconnaissance, qui est au principe de toute autorité.
+#+END_SRC
+
+#+BEGIN_SRC text :tangle data/bourdieu_complex.txt
+Les dominés appliquent des catégories construites du point de vue des dominants aux relations de domination, les faisant ainsi apparaître comme naturelles. Ce qui peut conduire à une sorte d'auto-dépréciation, voire d'auto-dénigrement systématiques, visibles notamment dans la représentation que les femmes se font de leur corps comme insuffisamment conforme à l'idéal esthétique imposé par l'arbitraire culturel dominant.
+#+END_SRC
+
+* Julia Kristeva
+
+#+BEGIN_SRC text :tangle data/kristeva.txt
+L'étranger commence lorsque surgit la conscience de ma différence et s'achève lorsque nous nous reconnaissons tous étrangers, rebelles aux liens et aux communautés.
+#+END_SRC
+
+#+BEGIN_SRC text :tangle data/kristeva_complex.txt
+L'analyse du fonctionnement du langage comme production de sens nous a amenée à une théorie du sujet qui, renouvelant l'ancien concept philosophique, se présente comme une articulation spécifique du sens, opérant à travers une unité fendue, impossible à recentrer: bloc hétérogène régi par un système en abyme où le «sujet» ne se trouve, en processus dans la négativité qui l'évacue, que comme vouloir-dire absent, comme vouloir-rire anonyme.
+#+END_SRC
+
+* Emmanuel Levinas
+
+#+BEGIN_SRC text :tangle data/levinas.txt
+Le visage est signification, et signification sans contexte.
+#+END_SRC
+
+#+BEGIN_SRC text :tangle data/levinas_complex.txt
+L'épiphanie du visage comme visage ouvre l'humanité. Le visage dans sa nudité de visage me présente le dénuement du pauvre et de l'étranger; mais cette pauvreté et cet exil qui en appellent à mes pouvoirs, me visent, ne se livrent pas à ces pouvoirs comme des données, restent expression de visage. Le pauvre, l'étranger, se présente comme égal. Son égalité dans cette pauvreté essentielle, consiste à se référer à mon obligation à son égard.
+#+END_SRC
+
+* Maurice Merleau-Ponty
+
+#+BEGIN_SRC text :tangle data/merleau_ponty.txt
+Le corps est notre moyen général d'avoir un monde.
+#+END_SRC
+
+#+BEGIN_SRC text :tangle data/merleau_ponty_complex.txt
+Le monde n'est pas ce que je pense, mais ce que je vis; je suis ouvert au monde, je communique indubitablement avec lui, mais je ne le possède pas, il est inépuisable. «Il y a un monde», ou plutôt: «il y a le monde»; de cette thèse constante de ma vie je ne puis jamais rendre entièrement raison.
+#+END_SRC
+
+
+* Poets
+
+#+BEGIN_SRC text :tangle data/baudelaire.txt
+Les parfums, les couleurs et les sons se répondent.
+#+END_SRC
+
+#+BEGIN_SRC text :tangle data/rimbaud.txt
+Je est un autre.
+#+END_SRC
+
+#+BEGIN_SRC text :tangle data/apollinaire.txt
+Sous le pont Mirabeau coule la Seine et nos amours. Faut-il qu'il m'en souvienne? La joie venait toujours après la peine.
+#+END_SRC
+
+#+BEGIN_SRC text :tangle data/mallarmé.txt
+Un coup de dés jamais n'abolira le hasard.
+#+END_SRC
+
+* Political Figures
+
+** De Gaulle 
+#+BEGIN_SRC text :tangle data/de_gaulle.txt
+La France ne peut être la France sans la grandeur.
+#+END_SRC
+
+
+#+BEGIN_SRC lisp :tangle examples/de_gaulle.lisp :mkdirp yes
+  ;; De Gaulle: "La France ne peut être la France sans la grandeur."
+  (S :id "de-gaulle-1" :metadata {:complete true}
+    (NP :metadata {:semantic-role :subject}
+      (DET "La" :metadata {:gender :fem :number :sing :definite true})
+      (N "France" :metadata {:proper-noun true :country true})
+    )
+    (VP
+      (V "peut" :metadata {:person 3 :number :sing :tense :present :negation true})
+      (ADV "ne" :metadata {:negation true})
+      (V "être" :metadata {:features (INF)})
+      (NP
+        (DET "la" :metadata {:gender :fem :number :sing :definite true})
+        (N "France" :metadata {:proper-noun true :country true})
+      )
+      (PP
+        (P "sans" :metadata {:negation true})
+        (NP
+          (DET "la" :metadata {:gender :fem :number :sing :definite true})
+          (N "grandeur" :metadata {:abstractness 0.9})
+        )
+      )
+    )
+    (PUNCT ".")
+  )
+#+END_SRC
+
+** Chirac
+
+#+BEGIN_SRC text :tangle data/chirac.txt
+Notre maison brûle et nous regardons ailleurs.
+#+END_SRC
+
+
+#+BEGIN_SRC lisp :tangle examples/chirac.lisp
+
+  ;; Chirac: "Notre maison brûle et nous regardons ailleurs."
+  (S :id "chirac-1" :metadata {:complete true}
+    (S :metadata {:clause-type :main}
+      (NP :metadata {:semantic-role :subject}
+        (DET "Notre" :metadata {:possessive true :person 1 :number :plur})
+        (N "maison" :metadata {:gender :fem :number :sing})
+      )
+      (VP
+        (V "brûle" :metadata {:person 3 :number :sing :tense :present})
+      )
+    )
+    (CONJ "et" :metadata {:coordination true})
+    (S :metadata {:clause-type :main}
+      (NP :metadata {:semantic-role :subject}
+        (PRON "nous" :metadata {:person 1 :number :plur})
+      )
+      (VP
+        (V "regardons" :metadata {:person 1 :number :plur :tense :present})
+        (ADV "ailleurs" :metadata {:spatial true})
+      )
+    )
+    (PUNCT ".")
+  )
+#+END_SRC
+
+** Macron 
+
+#+BEGIN_SRC text :tangle data/macron.txt
+Je ne céderai rien, ni aux fainéants, ni aux cyniques, ni aux extrêmes.
+#+END_SRC
+
+#+BEGIN_SRC lisp :tangle examples/macron.lisp
+
+  ;; Macron: "Je ne céderai rien, ni aux fainéants, ni aux cyniques, ni aux extrêmes."
+  (S :id "macron-1" :metadata {:complete true}
+    (NP :metadata {:semantic-role :subject}
+      (PRON "Je" :metadata {:person 1 :number :sing})
+    )
+    (VP
+      (ADV "ne" :metadata {:negation true})
+      (V "céderai" :metadata {:person 1 :number :sing :tense :future})
+      (PRON "rien" :metadata {:indefinite true :negation true})
+      (PUNCT ",")
+      (CONJ "ni" :metadata {:coordination true :negation true})
+      (PP
+        (P "aux" :metadata {:contraction true})
+        (NP
+          (N "fainéants" :metadata {:number :plur :pejorative true})
+        )
+      )
+      (PUNCT ",")
+      (CONJ "ni" :metadata {:coordination true :negation true})
+      (PP
+        (P "aux" :metadata {:contraction true})
+        (NP
+          (N "cyniques" :metadata {:number :plur})
+        )
+      )
+      (PUNCT ",")
+      (CONJ "ni" :metadata {:coordination true :negation true})
+      (PP
+        (P "aux" :metadata {:contraction true})
+        (NP
+          (N "extrêmes" :metadata {:number :plur :political true})
+        )
+      )
+    )
+    (PUNCT ".")
+  )
+
+#+END_SRC
+
+* Baseline 
+
+#+BEGIN_SRC text :tangle data/freebsd_upgrade.txt
+Voulant améliorer mon flux de travail, je souhaite installer Emacs 31.0, qui est réputé pour sa stabilité, demain après avoir terminé l'installation des ports/schemesh dont j'ai besoin pour mes projets, mais pas avant que je ne récupère les ports FreeBSD, bien que je craigne que cette séquence d'opérations ne prenne plus de temps que prévu.
+#+END_SRC
+
+
+#+BEGIN_SRC lisp :tangle examples/freebsd_upgrade.lisp
+
+  ;; Baseline: "Voulant améliorer mon flux de travail, je souhaite installer Emacs 31.0..."
+  (S :id "freebsd-upgrade" :metadata {:complete true}
+    (PARTCL :metadata {:rhetorical-role :motivation}
+      (V "Voulant" :metadata {:features (PART PRES)})
+      (V "améliorer" :metadata {:features (INF)})
+      (NP
+        (DET "mon" :metadata {:gender :masc :number :sing :person 1 :possessive true})
+        (N "flux" :metadata {:domain :technical})
+        (PP
+          (P "de")
+          (N "travail" :metadata {:domain :activity})
+        )
+      )
+      (PUNCT ",")
+    )
+    
+    (NP :metadata {:semantic-role :agent}
+      (PRON "je" :metadata {:person 1 :number :sing})
+    )
+    
+    (VP
+      (V "souhaite" :metadata {:person 1 :number :sing :tense :present})
+      (V "installer" :metadata {:features (INF)})
+      
+      (NP :metadata {:tech-entity true}
+        (N "Emacs" :metadata {:proper-noun true :software true})
+        (NUM "31.0" :metadata {:version true})
+        
+        (RELCL
+          (REL "qui" :metadata {:antecedent "Emacs"})
+          (V "est" :metadata {:person 3 :number :sing :tense :present})
+          (ADJ "réputé")
+          
+          (PP
+            (P "pour")
+            (NP
+              (DET "sa" :metadata {:gender :fem :number :sing :person 3 :possessive true})
+              (N "stabilité")
+            )
+          )
+        )
+      )
+      
+      (ADV "demain" :metadata {:temporal true})
+      
+      (PP
+        (P "après")
+        
+        (INFCL
+          (V "avoir" :metadata {:features (AUX INF)})
+          (V "terminé" :metadata {:features (PAST PART)})
+          
+          (NP
+            (DET "l'" :metadata {:definite true})
+            (N "installation" :metadata {:domain :computing})
+            
+            (PP
+              (P "des")
+              (NP
+                (N "ports/schemesh" :metadata {:tech-term true})
+                
+                (RELCL
+                  (REL "dont" :metadata {:relation :genitive})
+                  (NP
+                    (PRON "j'" :metadata {:person 1 :number :sing})
+                  )
+                  (V "ai" :metadata {:person 1 :number :sing :tense :present})
+                  (N "besoin")
+                  
+                  (PP
+                    (P "pour")
+                    (NP
+                      (DET "mes" :metadata {:person 1 :number :plur :possessive true})
+                      (N "projets")
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+    
+    (CONJ "mais" :metadata {:adversative true})
+    
+    (ADVP
+      (ADV "pas" :metadata {:negation true})
+      
+      (PP
+        (P "avant")
+        
+        (SUBCL
+          (SUB "que")
+          (NP
+            (PRON "je" :metadata {:person 1 :number :sing})
+          )
+          (PART "ne" :metadata {:expletive true})
+          (V "récupère" :metadata {:person 1 :number :sing :tense :present :mood :subjunctive})
+          
+          (NP
+            (DET "les" :metadata {:definite true :number :plur})
+            (N "ports" :metadata {:domain :computing})
+            (N "FreeBSD" :metadata {:proper-noun true})
+          )
+        )
+      )
+    )
+    
+    (SUBCL
+      (SUB "bien que" :metadata {:concessive true})
+      (NP
+        (PRON "je" :metadata {:person 1 :number :sing})
+      )
+      (V "craigne" :metadata {:person 1 :number :sing :tense :present :mood :subjunctive})
+      
+      (NOMCL
+        (SUB "que")
+        (NP
+          (DET "cette" :metadata {:demonstrative true})
+          (N "séquence")
+          
+          (PP
+            (P "d'" :metadata {:elision true})
+            (N "opérations" :metadata {:number :plur})
+          )
+        )
+        (PART "ne" :metadata {:expletive true})
+        (V "prenne" :metadata {:person 3 :number :sing :tense :present :mood :subjunctive})
+        
+        (ADVP
+          (ADV "plus")
+          (P "de")
+          (N "temps")
+          (SUB "que")
+          (V "prévu" :metadata {:features (PAST PART)})
+        )
+      )
+    )
+    
+    (PUNCT ".")
+  )
+
+#+END_SRC
+
+
+
+ 
+

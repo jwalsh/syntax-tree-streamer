@@ -57,4 +57,13 @@ var/
 *.blg
 *.log
 *.out
-*.toc
+*.toc*.html
+*.tex
+*.pdf
+*.tangle
+*.txt
+*.html
+*.tex
+*.pdf
+*.tangle
+*.txt

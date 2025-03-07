@@ -126,6 +126,12 @@ data:
 data/pg2650.txt: data ## Du côté de chez Swann
 	wget -O $@  https://www.gutenberg.org/cache/epub/2650/pg2650.txt
 
+EXAMPLE ?= examples/freebsd-upgrade.lisp
+
+.PHONY: extract-tokens
+extract-tokens: $(EXAMPLE) ## Process an AST to original text
+	guile extract-tokens.scm $
+
 # Cleanup Targets
 .PHONY: clean
 clean: ## Remove generated files from the current build

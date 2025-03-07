@@ -1,0 +1,348 @@
+# Development Tools Code Examples
+
+## Guile Scheme Examples
+
+### Basic Syntax and Function Definition
+```scheme
+;; Simple function definition
+(define (square x)
+  (* x x))
+
+;; Higher-order function example
+(define (map-squares lst)
+  (map square lst))
+
+;; Example usage
+(display (map-squares '(1 2 3 4 5)))
+; Output: (1 4 9 16 25)
+
+;; Pattern matching
+(use-modules (ice-9 match))
+
+(define (describe-list lst)
+  (match lst
+    ['() "Empty list"]
+    [(x) (format #f "Single element: ~a" x)]
+    [(x y) (format #f "Two elements: ~a and ~a" x y)]
+    [(x . rest) (format #f "List with first element ~a and ~a more elements" x (length rest))]))
+
+;; Macro example
+(define-macro (when condition . body)
+  `(if ,condition
+       (begin ,@body)))
+
+;; Concurrent programming
+(use-modules (ice-9 threads))
+
+(define (parallel-computation)
+  (let ((t1 (make-thread (lambda () (display "Thread 1\n"))))
+        (t2 (make-thread (lambda () (display "Thread 2\n")))))
+    (join-thread t1)
+    (join-thread t2)))
+```
+
+## Bison (Parser Generator) Example
+
+### Simple Calculator Parser
+```bison
+%{
+#include <stdio.h>
+void yyerror(const char *s);
+int yylex(void);
+%}
+
+%union {
+    int ival;
+    float fval;
+}
+
+%token <ival> INTEGER
+%token PLUS MINUS MULTIPLY DIVIDE
+%token NEWLINE
+
+%type <ival> expression
+
+%%
+
+calculation:
+    | calculation expression NEWLINE { printf("Result: %d\n", $2); }
+    ;
+
+expression:
+    INTEGER                 { $$ = $1; }
+    | expression PLUS expression   { $$ = $1 + $3; }
+    | expression MINUS expression  { $$ = $1 - $3; }
+    | expression MULTIPLY expression { $$ = $1 * $3; }
+    | expression DIVIDE expression { 
+        if($3 == 0) {
+            yyerror("Division by zero");
+            $$ = 0;
+        } else {
+            $$ = $1 / $3; 
+        }
+    }
+    ;
+
+%%
+
+void yyerror(const char *s) {
+    fprintf(stderr, "Error: %s\n", s);
+}
+
+int main() {
+    printf("Simple Calculator\n");
+    printf("Enter expressions (e.g., 5 + 3)\n");
+    yyparse();
+    return 0;
+}
+```
+
+## Flex (Lexical Analyzer) Example
+
+### Token Lexer for Simple Language
+```flex
+%{
+#include <stdio.h>
+%}
+
+%%
+[0-9]+            { printf("INTEGER: %s\n", yytext); }
+[a-zA-Z][a-zA-Z0-9]* { printf("IDENTIFIER: %s\n", yytext); }
+"+"               { printf("PLUS\n"); }
+"-"               { printf("MINUS\n"); }
+"*"               { printf("MULTIPLY\n"); }
+"/"               { printf("DIVIDE\n"); }
+[ \t\n]           ; /* Ignore whitespace */
+.                 { printf("UNKNOWN: %s\n", yytext); }
+%%
+
+int main(int argc, char **argv) {
+    if (argc > 1) {
+        if (!(yyin = fopen(argv[1], "r"))) {
+            perror(argv[1]);
+            return 1;
+        }
+    }
+    yylex();
+    return 0;
+}
+
+int yywrap() {
+    return 1;
+}
+```
+
+## Common Lisp Example
+
+```lisp
+;; Define a package
+(defpackage :example-package
+  (:use :cl)
+  (:export :greet))
+
+(in-package :example-package)
+
+;; Define a simple function
+(defun greet (name)
+  "A simple greeting function"
+  (format t "Hello, ~a!~%" name))
+
+;; Generic function example
+(defgeneric describe-object (object)
+  (:documentation "Describe different types of objects"))
+
+(defmethod describe-object ((number number))
+  (format t "This is a number: ~a~%" number))
+
+(defmethod describe-object ((string string))
+  (format t "This is a string with length ~a: ~a~%" 
+          (length string) string))
+
+;; CLOS (Common Lisp Object System) example
+(defclass person ()
+  ((name :initarg :name :accessor person-name)
+   (age :initarg :age :accessor person-age)))
+
+(defmethod print-object ((person person) stream)
+  (format stream "Person: ~a (Age: ~a)" 
+          (person-name person) 
+          (person-age person)))
+
+;; Macro example
+(defmacro when-bind ((var expr) &body body)
+  `(let ((,var ,expr))
+     (when ,var
+       ,@body)))
+
+;; Example usage
+(let ((result (when-bind (x (+ 2 3))
+                (1+ x))))
+  (print result))  ; Outputs: 6
+```
+
+## WebAssembly (Rust) Example
+
+```rust
+use wasm_bindgen::prelude::*;
+
+// Simple WebAssembly function
+#[wasm_bindgen]
+pub fn add(a: i32, b: i32) -> i32 {
+    a + b
+}
+
+// More complex example with structs
+#[wasm_bindgen]
+pub struct Calculator {
+    value: i32,
+}
+
+#[wasm_bindgen]
+impl Calculator {
+    pub fn new(initial_value: i32) -> Calculator {
+        Calculator { value: initial_value }
+    }
+
+    pub fn add(&mut self, x: i32) {
+        self.value += x;
+    }
+
+    pub fn get_value(&self) -> i32 {
+        self.value
+    }
+}
+
+// Example of working with more complex types
+#[wasm_bindgen]
+pub fn process_string(input: &str) -> String {
+    format!("Processed: {}", input.to_uppercase())
+}
+```
+
+## Practical Workflow Integration
+
+### Makefile for Multi-Language Project
+```makefile
+# Multi-language project Makefile
+
+# Directories
+SRC_DIR = src
+BUILD_DIR = build
+SCHEME_DIR = $(SRC_DIR)/scheme
+PARSER_DIR = $(SRC_DIR)/parser
+WASM_DIR = $(SRC_DIR)/wasm
+
+# Tools
+GUILE = guile
+BISON = bison
+FLEX = flex
+RUSTC = rustc
+WASM_PACK = wasm-pack
+
+# Targets
+.PHONY: all clean
+
+all: scheme-build parser-build wasm-build
+
+# Scheme compilation
+scheme-build:
+	$(GUILE) -c '(load "$(SCHEME_DIR)/main.scm")'
+
+# Parser generation
+parser-build: 
+	$(BISON) -d $(PARSER_DIR)/parser.y
+	$(FLEX) $(PARSER_DIR)/lexer.l
+	gcc -o $(BUILD_DIR)/parser parser.tab.c lex.yy.c
+
+# WebAssembly compilation
+wasm-build:
+	cd $(WASM_DIR) && $(WASM_PACK) build
+
+clean:
+	rm -rf $(BUILD_DIR)/*
+	rm -f parser.tab.c parser.tab.h lex.yy.c
+```
+
+## Development Environment Setup
+
+### Recommended Tool Versions
+- Guile Scheme: 3.0+
+- Bison: 3.7+
+- Flex: 2.6+
+- Rust: 1.55+
+- WebAssembly: WASI 1.0
+
+### Project Structure Recommendation
+```
+project-root/
+│
+├── src/
+│   ├── scheme/
+│   ├── parser/
+│   ├── wasm/
+│   └── common/
+│
+├── build/
+├── tests/
+├── docs/
+└── Makefile
+```
+
+## Interoperability Tips
+
+### Scheme to C Integration
+```c
+// C header for Scheme integration
+#include <libguile.h>
+
+// C function to be called from Scheme
+static SCM c_add(SCM x, SCM y) {
+    return scm_from_int(
+        scm_to_int(x) + scm_to_int(y)
+    );
+}
+
+// Initialization function
+void init_my_module() {
+    scm_c_define_gsubr("add", 2, 0, 0, c_add);
+}
+```
+
+### Language Interop Patterns
+1. Use well-defined interfaces
+2. Minimize complex data transformations
+3. Leverage language-specific FFI (Foreign Function Interface)
+4. Use lightweight serialization for data exchange
+```
+C/Rust -> WebAssembly
+  │
+  ├── JSON
+  ├── Protocol Buffers
+  └── MessagePack
+```
+
+## Best Practices
+
+1. **Modularity**: Design small, focused components
+2. **Type Safety**: Use strong typing where possible
+3. **Error Handling**: Implement robust error management
+4. **Performance**: Profile and optimize critical paths
+5. **Documentation**: Maintain clear, concise documentation
+
+## Learning Resources
+
+### Online References
+- [GNU Guile Manual](https://www.gnu.org/software/guile/manual/)
+- [Bison Documentation](https://www.gnu.org/software/bison/manual/)
+- [Flex Documentation](https://github.com/westes/flex/wiki)
+- [WebAssembly Specification](https://webassembly.github.io/spec/)
+```
+
+The comprehensive guide provides:
+- Detailed code examples for Scheme, Bison, Flex, Common Lisp, and WebAssembly
+- Practical workflow integration
+- Interoperability patterns
+- Best practices
+- Recommended project structure
+
+
