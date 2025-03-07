@@ -12,22 +12,66 @@ import time
 import re
 import curses
 import random
-from dataclasses import dataclass
-from typing import List, Tuple
+from dataclasses import dataclass, field
+from typing import List, Tuple, Optional, Dict, Any
+
+try:
+    import spacy
+    SPACY_AVAILABLE = True
+except ImportError:
+    SPACY_AVAILABLE = False
+    print("spaCy not available. Using basic text processing instead.")
+    print("To install spaCy: pip install spacy")
+    print("To install French language model: python -m spacy download fr_core_news_sm")
 
 @dataclass
 class TextUnit:
     text: str
-    unit_type: str  # 'paragraph', 'sentence', 'word', etc.
-    parent: 'TextUnit' = None
-    children: List['TextUnit'] = None
+    unit_type: str  # 'paragraph', 'sentence', 'word', 'phrase', etc.
+    parent: Optional['TextUnit'] = None
+    children: List['TextUnit'] = field(default_factory=list)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    span: Any = None  # spaCy span object
     
-    def __post_init__(self):
-        if self.children is None:
-            self.children = []
+    @property
+    def id(self) -> str:
+        """Generate a unique ID for this unit based on position in hierarchy."""
+        if self.parent is None:
+            return self.unit_type.lower()
+        
+        # Get index of this unit in its parent's children
+        if self.parent.children:
+            idx = next((i for i, child in enumerate(self.parent.children) 
+                       if child is self), 0)
+        else:
+            idx = 0
+            
+        return f"{self.parent.id}-{self.unit_type[0].lower()}{idx}"
+        
+    def to_s_expr(self, indent=0) -> str:
+        """Convert this unit to an S-expression."""
+        ind = "  " * indent
+        meta_str = ""
+        
+        if self.metadata:
+            meta_items = [f"{k} {v}" for k, v in self.metadata.items()]
+            meta_str = f" :metadata {{{', '.join(meta_items)}}}"
+            
+        if self.unit_type in ["WORD", "PUNCT", "NUM", "SYM"]:
+            # Terminal nodes include the actual text
+            return f"{ind}({self.unit_type} \"{self.text}\"{meta_str})"
+            
+        # Non-terminal nodes include their children
+        result = [f"{ind}({self.unit_type} :id \"{self.id}\"{meta_str}"]
+        
+        for child in self.children:
+            result.append(child.to_s_expr(indent + 1))
+            
+        result.append(f"{ind})")
+        return "\n".join(result)
 
 class ProustReader:
-    def __init__(self, file_path, start_line=56):
+    def __init__(self, file_path, start_line=56, use_spacy=True):
         """Initialize the Proust reader with the given file path."""
         self.file_path = file_path
         self.paragraphs = []
@@ -36,6 +80,23 @@ class ProustReader:
         self.current_word_idx = 0
         self.reading_speed = 0.3  # seconds per word
         self.start_line = start_line  # Skip header and start at first content paragraph
+        self.use_spacy = use_spacy and SPACY_AVAILABLE
+        
+        # Initialize spaCy if available
+        if self.use_spacy:
+            try:
+                self.nlp = spacy.load("fr_core_news_sm")
+                print("Using spaCy French language model for analysis")
+            except OSError:
+                print("French language model not found. Downloading...")
+                os.system("python -m spacy download fr_core_news_sm")
+                try:
+                    self.nlp = spacy.load("fr_core_news_sm")
+                    print("French model loaded successfully")
+                except Exception as e:
+                    print(f"Error loading French model: {e}")
+                    self.use_spacy = False
+        
         self.load_text()
         self.parse_text()
 
@@ -61,27 +122,230 @@ class ProustReader:
 
     def parse_text(self):
         """Parse the text into a tree structure (paragraph -> sentence -> word)."""
-        self.text_tree = TextUnit("Du côté de chez Swann", "book")
+        self.text_tree = TextUnit("Du côté de chez Swann", "BOOK")
         
-        for paragraph_text in self.paragraphs:
-            paragraph = TextUnit(paragraph_text, "paragraph", self.text_tree)
+        if self.use_spacy:
+            self._parse_with_spacy()
+        else:
+            self._parse_with_regex()
+    
+    def _parse_with_spacy(self):
+        """Parse the text using spaCy's linguistic features."""
+        for i, paragraph_text in enumerate(self.paragraphs):
+            # Process the paragraph with spaCy
+            doc = self.nlp(paragraph_text)
+            
+            # Create paragraph node
+            paragraph = TextUnit(paragraph_text, "PARAGRAPH", self.text_tree)
+            paragraph.metadata = {
+                "position": i,
+                "length": len(paragraph_text)
+            }
+            paragraph.span = doc
+            self.text_tree.children.append(paragraph)
+            
+            # Add sentences
+            for j, sent in enumerate(doc.sents):
+                sentence = TextUnit(sent.text, "SENTENCE", paragraph)
+                sentence.metadata = {
+                    "position": j,
+                    "length": len(sent.text)
+                }
+                sentence.span = sent
+                paragraph.children.append(sentence)
+                
+                # Analyze phrases (based on noun chunks and verb phrases)
+                phrases = list(sent.noun_chunks)
+                
+                # Simple algorithm to break remaining tokens into phrases
+                current_phrase_tokens = []
+                current_phrase_type = None
+                
+                for token in sent:
+                    # Check if token is start of a new phrase type
+                    if token.pos_ in ("NOUN", "PROPN") and current_phrase_type != "NP":
+                        # Save current phrase if it exists
+                        if current_phrase_tokens:
+                            self._add_phrase(sentence, current_phrase_tokens, current_phrase_type)
+                            current_phrase_tokens = []
+                        current_phrase_type = "NP"
+                    elif token.pos_ == "VERB" and current_phrase_type != "VP":
+                        if current_phrase_tokens:
+                            self._add_phrase(sentence, current_phrase_tokens, current_phrase_type)
+                            current_phrase_tokens = []
+                        current_phrase_type = "VP"
+                    elif token.pos_ == "ADP" and current_phrase_type != "PP":
+                        if current_phrase_tokens:
+                            self._add_phrase(sentence, current_phrase_tokens, current_phrase_type)
+                            current_phrase_tokens = []
+                        current_phrase_type = "PP"
+                    elif token.pos_ == "PUNCT" and token.text not in [",", "."]:
+                        # Handle punctuation as separate units
+                        if current_phrase_tokens:
+                            self._add_phrase(sentence, current_phrase_tokens, current_phrase_type)
+                            current_phrase_tokens = []
+                        
+                        # Add punctuation directly to sentence
+                        punct = TextUnit(token.text, "PUNCT", sentence)
+                        punct.metadata = {
+                            "pos": token.pos_,
+                            "lemma": token.lemma_
+                        }
+                        punct.span = token
+                        sentence.children.append(punct)
+                        continue
+                    
+                    # Add token to current phrase
+                    current_phrase_tokens.append(token)
+                
+                # Add final phrase if it exists
+                if current_phrase_tokens:
+                    self._add_phrase(sentence, current_phrase_tokens, current_phrase_type)
+    
+    def _add_phrase(self, sentence, tokens, phrase_type):
+        """Helper to add a phrase with its tokens to a sentence."""
+        if not tokens:
+            return
+            
+        # Default to generic phrase type if none determined
+        if not phrase_type:
+            phrase_type = "PHRASE"
+            
+        # Create the phrase node
+        phrase_text = " ".join(t.text for t in tokens)
+        phrase = TextUnit(phrase_text, phrase_type, sentence)
+        phrase.metadata = {
+            "length": len(phrase_text)
+        }
+        phrase.span = tokens[0].doc[tokens[0].i:tokens[-1].i+1]
+        sentence.children.append(phrase)
+        
+        # Add individual words
+        for token in tokens:
+            # Determine token type based on POS
+            if token.pos_ == "PUNCT":
+                token_type = "PUNCT"
+            elif token.pos_ == "NUM":
+                token_type = "NUM"
+            elif token.pos_ in ("NOUN", "PROPN"):
+                token_type = "N"
+            elif token.pos_ == "VERB":
+                token_type = "V"
+            elif token.pos_ == "PRON":
+                token_type = "PRON"
+            elif token.pos_ == "DET":
+                token_type = "DET"
+            elif token.pos_ == "ADJ":
+                token_type = "ADJ"
+            elif token.pos_ == "ADV":
+                token_type = "ADV"
+            elif token.pos_ == "ADP":
+                token_type = "P"
+            elif token.pos_ == "CCONJ":
+                token_type = "CONJ"
+            elif token.pos_ == "SCONJ":
+                token_type = "SUB"
+            else:
+                token_type = token.pos_
+                
+            word = TextUnit(token.text, token_type, phrase)
+            word.metadata = {
+                "pos": token.pos_,
+                "lemma": token.lemma_,
+                "tag": token.tag_
+            }
+            word.span = token
+            phrase.children.append(word)
+    
+    def _parse_with_regex(self):
+        """Parse the text using regular expressions (fallback)."""
+        for i, paragraph_text in enumerate(self.paragraphs):
+            paragraph = TextUnit(paragraph_text, "PARAGRAPH", self.text_tree)
+            paragraph.metadata = {
+                "position": i,
+                "length": len(paragraph_text)
+            }
             self.text_tree.children.append(paragraph)
             
             # Split paragraph into sentences
             sentences = re.split(r'(?<=[.!?])\s+', paragraph_text)
-            for sentence_text in sentences:
+            for j, sentence_text in enumerate(sentences):
                 if not sentence_text.strip():
                     continue
-                sentence = TextUnit(sentence_text, "sentence", paragraph)
+                    
+                sentence = TextUnit(sentence_text, "SENTENCE", paragraph)
+                sentence.metadata = {
+                    "position": j,
+                    "length": len(sentence_text)
+                }
                 paragraph.children.append(sentence)
                 
-                # Split sentence into words
-                words = re.findall(r'\b\w+\b|[.,;:!?]', sentence_text)
-                for word_text in words:
-                    if not word_text.strip():
-                        continue
-                    word = TextUnit(word_text, "word", sentence)
-                    sentence.children.append(word)
+                # Split sentences into phrases (by commas)
+                phrases = re.split(r'(,\s*)', sentence_text)
+                current_phrase_text = ""
+                
+                for k, phrase_part in enumerate(phrases):
+                    if re.match(r',\s*', phrase_part):
+                        # Add current phrase if it exists
+                        if current_phrase_text:
+                            phrase = TextUnit(current_phrase_text, "PHRASE", sentence)
+                            phrase.metadata = {
+                                "position": k // 2,  # Account for split capturing comma
+                                "length": len(current_phrase_text)
+                            }
+                            sentence.children.append(phrase)
+                            
+                            # Add words to phrase
+                            self._add_words_to_unit(phrase, current_phrase_text)
+                            current_phrase_text = ""
+                            
+                        # Add comma as punctuation
+                        punct = TextUnit(phrase_part.strip(), "PUNCT", sentence)
+                        sentence.children.append(punct)
+                    else:
+                        current_phrase_text += phrase_part
+                
+                # Add final phrase if it exists
+                if current_phrase_text:
+                    phrase = TextUnit(current_phrase_text, "PHRASE", sentence)
+                    phrase.metadata = {
+                        "position": len(phrases) // 2,
+                        "length": len(current_phrase_text)
+                    }
+                    sentence.children.append(phrase)
+                    
+                    # Add words to phrase
+                    self._add_words_to_unit(phrase, current_phrase_text)
+    
+    def _add_words_to_unit(self, unit, text):
+        """Add words to a textual unit using basic regex parsing."""
+        # Simple word and punctuation detection
+        tokens = re.findall(r'\b\w+\b|[.,;:!?]', text)
+        
+        for token in tokens:
+            if not token.strip():
+                continue
+                
+            # Basic POS determination
+            if re.match(r'[.,;:!?]', token):
+                token_type = "PUNCT"
+            elif token.lower() in ["je", "tu", "il", "elle", "nous", "vous", "ils", "elles", "me", "te", "se", "le", "la"]:
+                token_type = "PRON"
+            elif token.lower() in ["et", "ou", "mais", "donc", "car", "ni"]:
+                token_type = "CONJ"
+            elif token.lower() in ["le", "la", "les", "un", "une", "des", "ma", "mon", "mes"]:
+                token_type = "DET"
+            elif token.lower() in ["à", "de", "en", "dans", "sur", "sous", "par", "pour", "avec", "sans"]:
+                token_type = "P"
+            elif token.lower() in ["que", "qui", "dont", "où", "quand", "comment", "pourquoi"]:
+                token_type = "SUB"
+            elif re.match(r'\d+', token):
+                token_type = "NUM"
+            else:
+                token_type = "WORD"
+                
+            word = TextUnit(token, token_type, unit)
+            unit.children.append(word)
 
     def get_visible_text(self, window_height):
         """Get the text to display in the window."""
@@ -244,90 +508,54 @@ class ProustReader:
                 self.move_to_next_word()
                 time.sleep(self.reading_speed)
 
-def generate_ast(paragraphs, start_idx=0, end_idx=2):
-    """Generate an S-expression AST representation of paragraphs."""
-    ast = []
-    
-    for i, para in enumerate(paragraphs[start_idx:end_idx]):
-        para_id = f"para-{start_idx + i}"
-        para_node = f"(PARAGRAPH :id \"{para_id}\" :metadata {{:position {start_idx + i} :length {len(para)}}}\n"
-        
-        # Split into sentences
-        sentences = re.split(r'(?<=[.!?])\s+', para)
-        for j, sent in enumerate(sentences):
-            if not sent.strip():
-                continue
-                
-            sent_id = f"{para_id}-s{j}"
-            sent_node = f"  (SENTENCE :id \"{sent_id}\" :metadata {{:position {j} :length {len(sent)}}}\n"
-            
-            # Split into phrases (roughly by commas, semicolons)
-            phrases = re.split(r'([,;])', sent)
-            phrase_fragments = []
-            
-            for k, phrase in enumerate(phrases):
-                if not phrase.strip():
-                    continue
-                    
-                if phrase in [',', ';']:
-                    phrase_fragments.append(f"    (PUNCT \"{phrase}\")\n")
-                    continue
-                    
-                phrase_id = f"{sent_id}-p{k}"
-                phrase_node = f"    (PHRASE :id \"{phrase_id}\" :metadata {{:position {k}}}\n"
-                
-                # Process words and punctuation
-                tokens = re.findall(r'\b\w+\b|[.,;:!?]', phrase)
-                for m, token in enumerate(tokens):
-                    if re.match(r'[.,;:!?]', token):
-                        phrase_node += f"      (PUNCT \"{token}\")\n"
-                    else:
-                        # Determine POS tag (simplified)
-                        pos = "N"  # Default to noun
-                        if m == 0 and token.lower() in ["je", "tu", "il", "elle", "nous", "vous", "ils", "elles"]:
-                            pos = "PRON"
-                        elif token.lower() in ["et", "ou", "mais", "donc", "car", "ni"]:
-                            pos = "CONJ"
-                        elif token.lower() in ["le", "la", "les", "un", "une", "des", "ma", "mon", "mes"]:
-                            pos = "DET"
-                        elif token.lower() in ["à", "de", "en", "dans", "sur", "sous", "par", "pour", "avec", "sans"]:
-                            pos = "P"
-                        elif token.lower().endswith(("ais", "ait", "ions", "iez", "aient", "é", "i", "u")):
-                            pos = "V"
-                            
-                        phrase_node += f"      ({pos} \"{token}\")\n"
-                
-                phrase_node += "    )\n"
-                phrase_fragments.append(phrase_node)
-            
-            sent_node += "".join(phrase_fragments)
-            sent_node += "  )\n"
-            para_node += sent_node
-        
-        para_node += ")\n"
-        ast.append(para_node)
-    
-    return "".join(ast)
-
 def main():
     """Main function."""
     # Get the path to the book
     script_dir = os.path.dirname(os.path.abspath(__file__))
     book_path = os.path.join(os.path.dirname(script_dir), "data", "pg2650.txt")
     
-    if len(sys.argv) > 1 and sys.argv[1] == "--ast":
-        # Generate AST representation
-        reader = ProustReader(book_path)
-        ast = generate_ast(reader.paragraphs)
+    # Parse command line arguments
+    import argparse
+    parser = argparse.ArgumentParser(description="Proust Reader - A streaming text viewer with AST generation")
+    parser.add_argument("--ast", action="store_true", help="Generate AST representation")
+    parser.add_argument("--no-spacy", action="store_true", help="Disable spaCy processing")
+    parser.add_argument("--paragraphs", type=int, default=2, help="Number of paragraphs to process for AST")
+    parser.add_argument("--output", help="Output file for AST (default: examples/proust_ast.lisp)")
+    args = parser.parse_args()
+    
+    # Set default output path
+    if args.ast and not args.output:
+        args.output = os.path.join(os.path.dirname(script_dir), "examples", "proust_ast.lisp")
+    
+    # Initialize reader with or without spaCy
+    reader = ProustReader(book_path, use_spacy=not args.no_spacy)
+    
+    if args.ast:
+        # Generate AST representation using the enhanced TextUnit.to_s_expr method
+        print(f"Generating AST for {args.paragraphs} paragraphs...")
         
-        ast_path = os.path.join(os.path.dirname(script_dir), "examples", "proust_ast.lisp")
-        with open(ast_path, 'w', encoding='utf-8') as f:
-            f.write(ast)
-        print(f"AST representation saved to {ast_path}")
+        # Get the specified number of paragraphs from the text tree
+        paragraphs = reader.text_tree.children[:args.paragraphs]
+        
+        # Generate S-expressions
+        ast_content = ""
+        for paragraph in paragraphs:
+            ast_content += paragraph.to_s_expr() + "\n"
+        
+        # Write to file
+        with open(args.output, 'w', encoding='utf-8') as f:
+            f.write(ast_content)
+        print(f"AST representation saved to {args.output}")
     else:
-        # Run the reader
-        reader = ProustReader(book_path)
-        curses.wrapper(reader.run_with_curses)
+        # Run the interactive reader
+        try:
+            curses.wrapper(reader.run_with_curses)
+        except KeyboardInterrupt:
+            print("Reader terminated by user.")
+        except Exception as e:
+            print(f"Error running reader: {e}")
+            import traceback
+            traceback.print_exc()
 
 if __name__ == "__main__":
     main()
