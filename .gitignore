@@ -1,0 +1,60 @@
+# Emacs
+*~
+\#*\#
+.\#*
+*.elc
+auto-save-list
+tramp
+.\#*
+.dir-locals.el
+
+# Org-mode tangle generated files
+.org-id-locations
+*_archive
+/src/
+/scheme/
+/doc/
+/scripts/
+
+# Build and compilation
+/build/
+
+# Data
+/data/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Scheme/Guile
+*.go
+
+# Shell
+*.log
+*.out
+
+# LaTeX intermediates
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.toc
