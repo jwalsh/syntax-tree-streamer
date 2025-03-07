@@ -1,0 +1,298 @@
+#+TITLE: Syntax Tree Representation and Language Parsing Research
+#+AUTHOR: J. Walsh
+#+EMAIL: j@wal.sh
+#+DATE: [2025-03-07 Fri]
+#+SETUPFILE: https://fniessen.github.io/org-html-themes/org/theme-readtheorg.setup
+#+LATEX_CLASS: article
+#+LATEX_CLASS_OPTIONS: [a4paper,11pt]
+#+LATEX_HEADER: \usepackage[utf8]{inputenc}
+#+LATEX_HEADER: \usepackage[T1]{fontenc}
+#+LATEX_HEADER: \usepackage{graphicx}
+#+LATEX_HEADER: \usepackage{longtable}
+#+LATEX_HEADER: \usepackage{hyperref}
+#+LATEX_HEADER: \usepackage{natbib}
+#+LATEX_HEADER: \usepackage{minted}
+#+LATEX_HEADER: \bibliographystyle{plainnat}
+#+OPTIONS: toc:3 h:3 num:3
+#+PROPERTY: header-args :eval never-export
+
+# Tangle configuration
+#+PROPERTY: header-args:c :tangle src/syntax_tree.c :mkdirp yes
+#+PROPERTY: header-args:c++ :tangle src/syntax_tree.cpp :mkdirp yes
+#+PROPERTY: header-args:scheme :tangle scheme/syntax_tree.scm :mkdirp yes
+#+PROPERTY: header-args:bison :tangle src/syntax_tree.y :mkdirp yes
+#+PROPERTY: header-args:flex :tangle src/syntax_tree.l :mkdirp yes
+#+PROPERTY: header-args:makefile :tangle Makefile :mkdirp yes
+#+PROPERTY: header-args:js :tangle src/visualization.js :mkdirp yes
+#+PROPERTY: header-args:css :tangle src/styles.css :mkdirp yes
+#+PROPERTY: header-args:python :tangle src/utils.py :mkdirp yes
+#+PROPERTY: header-args:bnf :tangle doc/grammar.bnf :mkdirp yes
+#+PROPERTY: header-args:sh :tangle scripts/build.sh :mkdirp yes :shebang "#!/bin/sh"
+
+* Introduction
+
+This document serves as a comprehensive research reference for the syntax tree representation and language parsing project. The primary goal is to develop a robust system for analyzing and transforming syntax trees, with a particular focus on S-expression-based representations that can handle streamed input from sources like Large Language Models (LLMs).
+
+** Project Context
+
+The project aims to create a parser and analysis system for S-expression-based syntax trees that:
+
+1. Can process input from language models in a streaming fashion
+2. Provides rich metadata annotation capabilities
+3. Supports incremental tree construction and modification
+4. Enables linguistic analysis of complex sentences
+5. Facilitates transformation and generation of natural language
+
+** Key Research Questions
+
+- How can syntax trees be represented efficiently while maintaining rich linguistic metadata?
+- What parsing techniques are most suitable for incremental, stream-based processing?
+- How can we integrate traditional parsing approaches with LLM-generated content?
+- What techniques can facilitate real-time visualization of syntax structures?
+
+* Theoretical Foundations
+
+** Syntax Tree Representation
+
+Syntax trees serve as the backbone of natural language processing and compiler design. They provide hierarchical representations of language structures that enable analysis, transformation, and generation.
+
+citep:Kockelmans1972-KOCOHA discusses the philosophical foundations of language and meaning that underpin our understanding of syntax. This phenomenological perspective complements the technical approaches we're developing.
+
+*** S-expression Representation
+
+We've chosen S-expressions as our primary syntax tree representation format due to their simplicity, expressiveness, and compatibility with Lisp-based processing systems. As citep:Fowler2010-FOWDSL notes, the choice of representation significantly impacts the usability and extensibility of domain-specific languages.
+
+#+BEGIN_SRC lisp
+(S :metadata {:stream-position 0 :complete true}
+  (NP :metadata {:semantic-role :agent}
+    (PRON "je" :metadata {:person 1 :number :sing})
+  )
+  (VP :metadata {:core-predicate true}
+    (V "souhaite" :metadata {:features (INDIC PRES) :valence 2})
+    (V "installer" :metadata {:features (INF)})
+    (NP :metadata {:tech-entity true}
+      (N "Emacs" :metadata {:entity-type :software})
+      (NUM "31.0")
+    )
+  )
+)
+#+END_SRC
+
+The representation above demonstrates our approach to annotating linguistic structures with rich metadata. Each node in the tree can carry information about its syntactic role, semantic properties, and other relevant characteristics.
+
+** Parsing Techniques
+
+The parsing approach we're developing builds on established techniques while introducing innovations for streaming and incremental processing.
+
+*** Traditional Parsing with Bison/Flex
+
+GNU Bison and Flex provide a solid foundation for implementing our parser. As detailed in citep:Parr2010-PARLAA, these tools enable the creation of parsers that can handle complex grammar specifications.
+
+#+BEGIN_SRC bnf
+<syntax-tree> ::= <node>
+
+<node> ::= "(" <category> <content> <properties>* <child>* ")"
+
+<category> ::= "S" | "NP" | "VP" | "PP" | "ADVP" | "AP" 
+             | "PARTCL" | "RELCL" | "INFCL" | "SUBCL" | "NOMCL"
+             | "V" | "N" | "DET" | "PRON" | "ADJ" | "ADV" | "P" | "CONJ" | "SUB" | "REL"
+             | "PART" | "NUM" | "PUNCT" | "AUX"
+#+END_SRC
+
+The BNF grammar above defines the structure of our syntax tree notation. Using Bison and Flex, we can generate a parser that validates and processes input according to this grammar.
+
+*** Incremental Parsing for Streaming Input
+
+Traditional parsing approaches assume complete input is available at parse time. However, when working with streaming sources like LLMs, we need to handle incomplete and evolving input. citep:Erdweg2011-ERDSEL provides insights into extensible parsing approaches that can be adapted for streaming contexts.
+
+#+BEGIN_SRC c
+// Pseudocode for incremental parser
+void process_token(token_t token, parser_state_t* state) {
+    switch (state->current_mode) {
+        case MODE_EXPECTING_CATEGORY:
+            if (is_category(token)) {
+                state->current_node = create_node(token.value);
+                state->current_mode = MODE_EXPECTING_CONTENT_OR_PROPERTY;
+            } else {
+                report_error("Expected category, got %s", token.value);
+            }
+            break;
+        
+        // Other states...
+    }
+}
+#+END_SRC
+
+This incremental approach allows us to maintain a partial parse tree that evolves as new tokens arrive from the stream.
+
+* Implementation Approaches
+
+** Parser Implementation
+
+Our parser implementation leverages GNU Bison and Flex to process S-expression syntax trees. As described in citep:Boersma2024-BOEUFD, modern DSL implementations benefit from robust parsing infrastructure.
+
+*** Lexer Specification
+
+The lexer identifies tokens in the input stream:
+
+#+BEGIN_SRC flex
+%%
+"("                         { return LPAREN; }
+")"                         { return RPAREN; }
+":"                         { return COLON; }
+"{"                         { return LBRACE; }
+"}"                         { return RBRACE; }
+
+"S"|"NP"|"VP"|"PP"|"ADVP"|"AP"|"PARTCL"|"RELCL"|"INFCL"|"SUBCL"|"NOMCL"|"V"|"N"|"DET"|"PRON"|"ADJ"|"ADV"|"P"|"CONJ"|"SUB"|"REL"|"PART"|"NUM"|"PUNCT"|"AUX" {
+                              yylval.str_val = strdup(yytext);
+                              return CATEGORY;
+                            }
+%%
+#+END_SRC
+
+*** Parser Specification
+
+The parser defines the grammar rules and actions:
+
+#+BEGIN_SRC bison
+%%
+syntax_tree
+    : node
+    { 
+        syntax_root = $1;
+        $$ = $1;
+    }
+    ;
+
+node
+    : LPAREN category content properties_list node_list RPAREN
+    {
+        $$ = create_node($2, $3, $4, $5);
+    }
+    ;
+%%
+#+END_SRC
+
+** Data Structures
+
+The core data structures for our syntax tree representation are designed to balance flexibility, memory efficiency, and performance.
+
+#+BEGIN_SRC c
+typedef struct node_s {
+    char* category;
+    char* content;
+    property_list_t* properties;
+    struct node_list_s* children;
+} syntax_node_t;
+#+END_SRC
+
+These structures support the rich metadata we need for linguistic analysis while maintaining a clean, hierarchical representation.
+
+** Integration with Guile Scheme
+
+Using Guile Scheme as a processing engine gives us powerful capabilities for transforming and analyzing syntax trees. citep:Shriram2012-SHRROL highlights the benefits of Lisp-like languages for language-oriented programming.
+
+#+BEGIN_SRC scheme
+(define (analyze-tree tree)
+  (match tree
+    (('S attrs . children)
+     (process-sentence attrs children))
+    (('NP attrs . children)
+     (process-noun-phrase attrs children))
+    ;; Handle other node types...
+    ))
+#+END_SRC
+
+* Real-Time Visualization
+
+Building on the projectional editing concepts described in citep:Tomassetti2017-TOPWPI, we're developing visualization techniques for syntax trees that update in real-time as input is processed.
+
+** Dynamic Tree Rendering
+
+The visualization approach uses a combination of React for UI rendering and D3.js for tree layout:
+
+#+BEGIN_SRC javascript
+function renderSyntaxTree(tree, container) {
+  const layout = d3.tree()
+    .size([800, 600])
+    .separation((a, b) => a.parent === b.parent ? 1 : 2);
+  
+  const root = d3.hierarchy(tree);
+  const nodes = layout(root);
+  
+  // Render nodes and edges...
+}
+#+END_SRC
+
+** Color Coding and Annotations
+
+Visual cues help users understand the structure and relationships in the syntax tree:
+
+#+BEGIN_SRC css
+.node-NP { fill: #E6F7FF; }
+.node-VP { fill: #FFF2E6; }
+.node-V { fill: #FF4500; }
+/* Other node type styles... */
+#+END_SRC
+
+* Future Directions
+
+** Language Model Integration
+
+Future work will focus on tighter integration with language models for syntax tree generation and analysis. citep:Kleppe2008-KLESPL provides a foundation for thinking about the metamodels that can bridge traditional parsing and LLM-based approaches.
+
+** Multilingual Support
+
+Extending our approach to support multiple languages will require adjustments to the grammar and processing logic. citep:Voelter2014-VOEPDS discusses techniques for creating language workbenches that can be adapted for multilingual support.
+
+** Advanced Analysis Techniques
+
+Future research will explore advanced techniques for semantic analysis and transformation, building on the foundations described in citep:Friedman2008-FRIELE.
+
+* Conclusion
+
+This research lays the groundwork for a powerful system for analyzing and processing syntax trees, with particular emphasis on streaming input and rich metadata annotation. By combining traditional parsing techniques with modern approaches to language processing, we aim to create tools that bridge the gap between computational linguistics and practical language applications.
+
+* Examples                                                        :noexport:
+
+This section contains additional examples for reference.
+
+#+BEGIN_SRC lisp
+(S
+  (PARTCL
+    (V "Voulant")
+    (V "améliorer")
+    (NP
+      (DET "mon")
+      (N "flux")
+      (PP
+        (P "de")
+        (N "travail")
+      )
+    )
+  )
+  
+  (PUNCT ",")
+  
+  (NP
+    (PRON "je")
+  )
+  
+  (VP
+    (V "souhaite")
+    (V "installer")
+    
+    (NP
+      (N "Emacs")
+      (NUM "31.0")
+    )
+  )
+)
+#+END_SRC
+
+* References
+
+#+LATEX: \bibliography{references}
+
+bibliographystyle:plainnat
+bibliography:references.bib
