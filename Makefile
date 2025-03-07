@@ -27,6 +27,13 @@ help: ## Display this help message with all available targets and their descript
 # Default goal - runs help if no target is specified
 .DEFAULT_GOAL := help
 
+# Simple directories setup for development
+.PHONY: setup-dirs
+setup-dirs:
+	@echo "Creating project directories..."
+	@mkdir -p src scheme doc scripts build data
+	@echo "Directory structure created."
+
 # High-Level Project Targets
 .PHONY: all
 all: build docs ## Build entire project (compilation + documentation)
@@ -42,6 +49,7 @@ tangle: tangle-research ## Tangle all project files (currently research.org)
 # Research Org Tangling with enhanced logging and error handling
 research.org.tangle: research.org ## Tangle research.org into source code
 	@echo "Tangling research.org..."
+	@mkdir -p src scheme doc scripts
 	@$(EMACS_BATCH) --eval "(require 'org)" \
 		--eval "(setq org-confirm-babel-evaluate nil)" \
 		--eval "(setq org-babel-tangle-use-relative-file-links nil)" \
@@ -85,7 +93,7 @@ publish-research: research.org ## Publish research.org as HTML
 	@$(EMACS_BATCH) --eval "(require 'org)" \
 		--eval "(setq org-confirm-babel-evaluate nil)" \
 		--eval "(find-file \"$<\")" \
-		--eval "(org-html-export-to-html)" \
+		--eval "(let ((org-export-show-temporary-export-buffer nil)) (org-html-export-to-html nil nil nil t))" \
 		--kill
 	@echo "Research published as HTML successfully."
 
